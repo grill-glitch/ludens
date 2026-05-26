@@ -1,0 +1,107 @@
+name: Build Release APK
+
+on:
+  push:
+    branches: [feature/simplified-chinese-support]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Accept Android SDK licenses
+        run: yes | sdkmanager --licenses
+
+      - name: Install Android SDK components
+        run: |
+          sdkmanager "platforms;android-36" "build-tools;35.0.0" "platform-tools"
+
+      - name: Generate keystore
+        run: |
+          keytool -genkeypair \
+            -v \
+            -keystore release.keystore \
+            -alias ludens \
+            -keyalg RSA \
+            -keysize 2048 \
+            -validity 10000 \
+            -storepass ludens123 \
+            -keypass ludens123 \
+            -dname "CN=Ludens, OU=Ludens, O=Ludens, L=Unknown, ST=Unknown, C=US"
+
+      - name: Create keystore.properties
+        run: |
+          cat > keystore.properties << 'EOF'
+          storePassword=ludens123
+          keyPassword=ludens123
+          keyAlias=ludens
+          storeFile=release.keystore
+          EOF
+
+      - name: Ensure index.html exists
+        run: |
+          mkdir -p project/www
+          if [ ! -f project/www/index.html ]; then
+            cat > project/www/index.html << 'HTMLEOF'
+          <!DOCTYPE html>
+          <html>
+          <head>
+              <meta charset="UTF-8">
+              <title>Test</title>
+          </head>
+          <body>
+              <h1>test</h1>
+          </body>
+          </html>
+          HTMLEOF
+          fi
+          cat project/www/index.html
+
+      - name: Grant execute permission to gradlew
+        run: chmod +x gradlew
+
+      - name: Build Release APK
+        run: ./gradlew assembleRelease --no-daemon --stacktrace
+        env:
+          ANDROID_HOME: /usr/local/lib/android/sdk
+
+      - name: List APK output
+        run: ls -la composeApp/build/outputs/apk/release/
+
+      - name: Upload APK as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-apk
+          path: composeApp/build/outputs/apk/release/*.apk
+
+      - name: Create GitHub Release
+        if: github.ref == 'refs/heads/feature/simplified-chinese-support'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: test-build-${{ github.run_number }}
+          name: Test Build #${{ github.run_number }}
+          body: |
+            Test build with Simplified Chinese support.
+            - Contains index.html with "test" content
+            - Includes values-zh/strings.xml for Chinese UI
+          files: composeApp/build/outputs/apk/release/*.apk
+          draft: false
+          prerelease: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
