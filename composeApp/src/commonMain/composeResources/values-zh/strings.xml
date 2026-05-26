@@ -27,7 +27,7 @@
     <string name="ru">Русский</string>
     <!--Controls-->
     <string name="key_joystick">摇杆</string>
-    <string name="key_button">%1$s 按钮 (%2$s)</string> <!--(keySimpleName, inputKeyName) 'X 按钮 (Enter)'-->
+    <string name="key_button">%1$s 按钮 (%2$s)</string>
     <string name="key_settings">设置</string>
     <!--Settings-->
     <string name="stc_text_all_controls">所有控件</string>
