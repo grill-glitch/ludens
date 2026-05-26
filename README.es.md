@@ -1,7 +1,7 @@
 # Ludens
 
 <p align="center">
-  <a href="README.md">Read in English</a> | <a href="BUILD.es.md">Guia de Construccion</a> | <a href="https://tryludens.vercel.app/">Docs Web</a>
+  <a href="README.md">Read in English</a> | <a href="README.zh.md">简体中文</a> | <a href="BUILD.es.md">Guia de Construccion</a> | <a href="https://tryludens.vercel.app/">Docs Web</a>
 </p>
 
 <p align="center">
